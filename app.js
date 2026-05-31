@@ -65,17 +65,14 @@ io.on("connection", (socket) => {
 
   // CREATE ROOM
   socket.on("createRoom", () => {
-    const roomId = randomBytes(4).toString('hex')
-    rooms.set(roomId, {
-      chess: new Chess(),
-      players: { white: null, black: null }
-    })
-    socket.join(roomId)
-    rooms.get(roomId).players.white = { id: socket.id, user: socket.data.user }
-    socket.emit("roomCreated", roomId)
-    socket.emit("playerRole", "w")
-    console.log(`Room created: ${roomId}`)
+  const roomId = randomBytes(4).toString('hex')
+  rooms.set(roomId, {
+    chess: new Chess(),
+    players: { white: null, black: null }
   })
+  console.log(`Room created: ${roomId}`)
+  socket.emit("roomCreated", roomId)
+})
 
   // JOIN ROOM
   socket.on("joinRoom", (roomId) => {
@@ -86,18 +83,27 @@ io.on("connection", (socket) => {
       return
     }
 
-    if (room.players.white && room.players.black) {
+    // join as white if slot is empty
+    if (!room.players.white) {
       socket.join(roomId)
-      socket.emit("spectatorRole")
-      socket.emit("boardState", room.chess.fen())
+      room.players.white = { id: socket.id, user: socket.data.user }
+      socket.emit("playerRole", "w")
       return
     }
 
+    // join as black if slot is empty
+    if (!room.players.black) {
+      socket.join(roomId)
+      room.players.black = { id: socket.id, user: socket.data.user }
+      socket.emit("playerRole", "b")
+      io.to(roomId).emit("boardState", room.chess.fen())
+      return
+    }
+
+    // room full - spectator
     socket.join(roomId)
-    room.players.black = { id: socket.id, user: socket.data.user }
-    socket.emit("playerRole", "b")
-    io.to(roomId).emit("boardState", room.chess.fen())
-    console.log(`Player joined room: ${roomId}`)
+    socket.emit("spectatorRole")
+    socket.emit("boardState", room.chess.fen())
   })
 
   // MOVE
