@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Master — Play Chess Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #f5f0e8;
+      --warm:    #ede8dc;
+      --brown:   #8b5e3c;
+      --dark:    #1a1208;
+      --darker:  #0d0905;
+      --gold:    #c9a84c;
+      --gold2:   #e8c96a;
+      --text:    #2d2416;
+      --muted:   #8a7a6a;
+      --light-sq: #f0d9b5;
+      --dark-sq:  #b58863;
+      --white:   #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--darker);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(13, 9, 5, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(245,240,232,0.7);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--cream); }
+
+    .nav-cta {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(201,168,76,0.1);
+      border-color: var(--gold);
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      border: 1px solid var(--gold);
+      color: var(--darker);
+    }
+
+    .btn-primary:hover {
+      background: var(--gold2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(201,168,76,0.3);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 0;
+      padding: 120px 48px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 20% 30%, rgba(201,168,76,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding-right: 48px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 5vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero-title .accent {
+      color: var(--gold);
+      display: block;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: rgba(245,240,232,0.65);
+      line-height: 1.7;
+      margin-bottom: 40px;
+      max-width: 480px;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-hero {
+      padding: 15px 36px;
+      font-size: 1rem;
+      border-radius: 8px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 56px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(245,240,232,0.1);
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .stat-item {}
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(245,240,232,0.5);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── CHESS BOARD ANIMATION ── */
+    .hero-board {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .board-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: glowPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .chess-board-3d {
+      position: relative;
+      transform: perspective(800px) rotateX(20deg) rotateZ(-5deg);
+      transform-style: preserve-3d;
+      animation: boardFloat 6s ease-in-out infinite;
+      filter: drop-shadow(0 40px 60px rgba(0,0,0,0.8));
+    }
+
+    @keyframes boardFloat {
+      0%, 100% { transform: perspective(800px) rotateX(20deg) rotateZ(-5deg) translateY(0px); }
+      50% { transform: perspective(800px) rotateX(20deg) rotateZ(-5deg) translateY(-12px); }
+    }
+
+    .mini-board {
+      display: grid;
+      grid-template-columns: repeat(8, 56px);
+      grid-template-rows: repeat(8, 56px);
+      border: 3px solid rgba(201,168,76,0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(201,168,76,0.2),
+        inset 0 0 60px rgba(0,0,0,0.3);
+    }
+
+    .mini-sq {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .mini-sq.l { background: var(--light-sq); }
+    .mini-sq.d { background: var(--dark-sq); }
+
+    .mini-sq .wp { color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9)); }
+    .mini-sq .bp { color: #1a1a1a; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+
+    /* piece move animation */
+    .piece-animated {
+      animation: pieceHover 3s ease-in-out infinite;
+    }
+
+    @keyframes pieceHover {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 120px 48px;
+      position: relative;
+    }
+
+    .features::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 64px;
+      max-width: 500px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: rgba(245,240,232,0.06);
+      border: 1px solid rgba(245,240,232,0.06);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: rgba(13,9,5,0.8);
+      padding: 40px 36px;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      transform: scaleX(0);
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover { background: rgba(30,22,12,0.9); }
+    .feature-card:hover::before { transform: scaleX(1); }
+
+    .feature-icon {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+
+    .feature-desc {
+      font-size: 0.88rem;
+      color: rgba(245,240,232,0.55);
+      line-height: 1.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how {
+      padding: 120px 48px;
+      position: relative;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
+      margin-top: 64px;
+    }
+
+    .how-step {
+      position: relative;
+    }
+
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 5rem;
+      font-weight: 900;
+      color: rgba(201,168,76,0.12);
+      line-height: 1;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--cream);
+    }
+
+    .step-desc {
+      font-size: 0.88rem;
+      color: rgba(245,240,232,0.5);
+      line-height: 1.7;
+    }
+
+    .how-step::after {
+      content: '→';
+      position: absolute;
+      top: 24px;
+      right: -24px;
+      color: rgba(201,168,76,0.3);
+      font-size: 1.5rem;
+    }
+
+    .how-step:last-child::after { display: none; }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 120px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(201,168,76,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-sub {
+      font-size: 1.05rem;
+      color: rgba(245,240,232,0.55);
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px 48px;
+      border-top: 1px solid rgba(245,240,232,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 0.82rem;
+      color: rgba(245,240,232,0.4);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--cream); }
+
+    .footer-copy {
+      font-size: 0.78rem;
+      color: rgba(245,240,232,0.3);
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
+      .hero-content { padding-right: 0; }
+      .hero-board { display: none; }
+      .features { padding: 80px 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .how { padding: 80px 24px; }
+      .how-grid { grid-template-columns: 1fr; gap: 32px; }
+      .how-step::after { display: none; }
+      .cta-section { padding: 80px 24px; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 20px; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/landing" class="nav-logo">♟ Chess Master</a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="/leaderboard">Leaderboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="/login" class="btn btn-ghost">Sign In</a>
+      <a href="/register" class="btn btn-primary">Play Free</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">Now live — play with anyone</div>
+      <h1 class="hero-title">
+        Play Chess
+        <span class="accent">Anywhere.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Real-time multiplayer chess with ELO rankings, game rooms, and live leaderboards. Challenge friends or strangers — your next great game is one click away.
+      </p>
+      <div class="hero-actions">
+        <a href="/register" class="btn btn-primary btn-hero">Start Playing Free</a>
+        <a href="/login" class="btn btn-ghost btn-hero">Sign In</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">1200</div>
+          <div class="stat-label">Starting ELO</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Game Rooms</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">Free</div>
+          <div class="stat-label">Always</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-board">
+      <div class="board-glow"></div>
+      <div class="chess-board-3d">
+        <div class="mini-board" id="miniBoard"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="reveal">
+      <div class="section-label">Why Chess Master</div>
+      <h2 class="section-title">Everything you need to play serious chess</h2>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-title">Real-Time Multiplayer</div>
+        <p class="feature-desc">Play live games with anyone in the world. Instant move sync via WebSockets — no lag, no delay.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏆</span>
+        <div class="feature-title">ELO Rating System</div>
+        <p class="feature-desc">Your skill rating updates after every game. Climb the leaderboard and prove your worth against real opponents.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <div class="feature-title">Private Game Rooms</div>
+        <p class="feature-desc">Create a private room, share the code with a friend, and play instantly. No account sharing needed.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👁</span>
+        <div class="feature-title">Spectator Mode</div>
+        <p class="feature-desc">Watch live games without interrupting. Learn from stronger players by observing their moves in real time.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Live Leaderboard</div>
+        <p class="feature-desc">See the top ranked players globally. Where do you stand? Every win moves you up the ranks.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">♟</span>
+        <div class="feature-title">Full Chess Rules</div>
+        <p class="feature-desc">Castling, en passant, promotion — all rules enforced server-side. No illegal moves, ever.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="reveal">
+      <div class="section-label">Getting Started</div>
+      <h2 class="section-title">Up and playing in 60 seconds</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Create your account</div>
+        <p class="step-desc">Sign up for free in seconds. No credit card, no verification email — just a username and password.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Create or join a game</div>
+        <p class="step-desc">Create a new game room and share the code, or enter a friend's room code to join their game instantly.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Play and climb</div>
+        <p class="step-desc">Make your moves, win the game, watch your ELO rise. Every game counts toward your ranking.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2 class="cta-title reveal">Your next great game is waiting</h2>
+    <p class="cta-sub reveal">Join Chess Master — completely free, forever.</p>
+    <div class="cta-buttons reveal">
+      <a href="/register" class="btn btn-primary btn-hero">Create Free Account</a>
+      <a href="/leaderboard" class="btn btn-ghost btn-hero">View Leaderboard</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">♟ Chess Master</div>
+    <ul class="footer-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="/login">Sign In</a></li>
+      <li><a href="/register">Register</a></li>
+      <li><a href="/leaderboard">Leaderboard</a></li>
+    </ul>
+    <div class="footer-copy">© 2026 Chess Master</div>
+  </footer>
+
+  <script>
+    // ── Build mini chess board ──
+    const pieces = {
+      0: ['br','bn','bb','bq','bk','bb','bn','br'],
+      1: ['bp','bp','bp','bp','bp','bp','bp','bp'],
+      6: ['wp','wp','wp','wp','wp','wp','wp','wp'],
+      7: ['wr','wn','wb','wq','wk','wb','wn','wr'],
+    }
+    const unicode = {
+      wp:'♙',wn:'♘',wb:'♗',wr:'♖',wq:'♕',wk:'♔',
+      bp:'♟',bn:'♞',bb:'♝',br:'♜',bq:'♛',bk:'♚'
+    }
+    const board = document.getElementById('miniBoard')
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const sq = document.createElement('div')
+        sq.className = `mini-sq ${(r + c) % 2 === 0 ? 'l' : 'd'}`
+        const row = pieces[r]
+        if (row) {
+          const p = row[c]
+          const span = document.createElement('span')
+          span.className = p[0] === 'w' ? 'wp piece-animated' : 'bp piece-animated'
+          span.style.animationDelay = `${(r * 8 + c) * 0.05}s`
+          span.textContent = unicode[p]
+          sq.appendChild(span)
+        }
+        board.appendChild(sq)
+      }
+    }
+
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100)
+        }
+      })
+    }, { threshold: 0.1 })
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+  </script>
+</body>
+</html>

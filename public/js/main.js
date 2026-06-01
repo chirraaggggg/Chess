@@ -296,7 +296,7 @@ socket.on("invalidMove", () => {
 socket.on("connect_error", (err) => {
   // if token is missing or invalid, redirect to login
   if (err.message === "No token provided" || err.message === "Invalid token") {
-    window.location.href = "/login"
+    window.location.href = "/landing"
   }
 })
 

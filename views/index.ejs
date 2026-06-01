@@ -100,10 +100,7 @@
       letter-spacing: 0.05em;
     }
     input:focus { border-color: var(--gold); }
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-    }
+    .divider { border: none; border-top: 1px solid var(--border); }
     .nav {
       display: flex;
       gap: 16px;
@@ -164,21 +161,22 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // show username
+    const token = localStorage.getItem('token')
     const username = localStorage.getItem('username')
-    if (!username) window.location.href = '/login'
+
+    // redirect to landing if not logged in
+    if (!token || !username) window.location.href = '/landing'
+
     document.getElementById('uname').textContent = username
 
-    const token = localStorage.getItem('token')
     const socket = io({ auth: { token } })
 
     socket.on('connect_error', (err) => {
       if (err.message === 'No token provided' || err.message === 'Invalid token') {
-        window.location.href = '/login'
+        window.location.href = '/landing'
       }
     })
 
-    // server created the room → redirect to game page
     socket.on('roomCreated', (roomId) => {
       window.location.href = `/game/${roomId}`
     })
@@ -197,7 +195,6 @@
       const roomId = document.getElementById('room-input').value.trim()
       if (!roomId) return
       socket.emit('joinRoom', roomId)
-      // redirect after joining
       socket.once('playerRole', () => {
         window.location.href = `/game/${roomId}`
       })
@@ -206,7 +203,6 @@
       })
     }
 
-    // allow Enter key to join
     document.getElementById('room-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') joinRoom()
     })
