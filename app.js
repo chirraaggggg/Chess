@@ -31,10 +31,7 @@ app.use(express.static(path.join(__dirname, "public")))
 
 // routes
 
-app.get("/", (req, res) => {
-  res.render("index", { title: "Chess Game" })
-})
-app.get('/landing', (req, res) => {
+app.get('/', (req, res) => {
   res.render('landing')
 })
 app.get('/login', (req, res) => {
